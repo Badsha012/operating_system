@@ -1,43 +1,43 @@
 #include<stdio.h>
- void quic(int number[10],int fast,int last){
-    int i,j,povit,temp;
-    if(fast<last){
-        povit=fast;
-        i=fast;
-        j=last;
-        while(i<j){
-            while(number[i]<=number[povit] && i<last)
-            i++;
-            while( number[j]>number[povit])
-            j--;
-            if(i<j){
-                temp=number[i];
-                number[i]=number[j];
-                number[j]=temp;
-            }
-        }
-        temp=number[povit];
-        number[povit]=number[j];
-        number[j]=temp;
-        quic(number,fast,j-1);
-        quic(number,j+1,last);
-
-    }
-}
 int main(){
-    int number[10],i,j,n;
-    
-    printf("enter the number :");
+    int bt[100],tq,i,n,rembt[100],t=0,wt[100],c=0,p[100],tat[100];
+    double total=0,avgwt=0;
+    printf("Enter the number:");
     scanf("%d",&n);
-    printf("Enter element:");
     for(i=0;i<n;i++){
-        scanf("%d",&number[i]);
+        printf("Input burst time process p[%d].\n",i+1);
+        scanf("%d",&bt[i]);
+        p[i]=i+1;
     }
-    quic(number,0,n-1);
-    printf("Array is sorted:");
+    printf("Take input quantum:\n");
+    scanf("%d",&tq);
     for(i=0;i<n;i++){
-        printf("%d,",number[i]);
+        rembt[i]=bt[i];
     }
-    return 0;
-
+    while(c!=n){
+        for ( i = 0; i < n; i++)
+        {
+            if(rembt[i]>tq){
+                t=t+tq;
+                rembt[i]=rembt[i]-tq;
+            }
+            else if(rembt[i]!=0){
+                t=t+rembt[i];
+                wt[i]=t-bt[i];
+                tat[i]=t;
+                total=total+wt[i];
+                rembt[i]=0;
+                c++;
+            }
+        }    
+    }
+    avgwt=total/n;
+    printf("\nProcess\t Burst Time\tWaiting Time\tTurnaround Time");
+    for(i=0;i<n;i++){
+        total=total+bt[i];
+        printf("\nP[%d]\t\t\%d\t\t%d\t\t%d",p[i],bt[i],wt[i],tat[i]);}
+        double avgtt=total/n;
+        printf("\nAverage Waiting Time%.2lf\n",avgwt);
+        printf("Average Turnaround Time%.2lf",avgtt);
+        return 0;
 }
