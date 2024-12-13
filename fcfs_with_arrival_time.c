@@ -1,55 +1,64 @@
 #include <stdio.h>
 
+// Structure to hold process information
 struct Process {
-    int pid;            // Process ID
-    int arrival_time;   // Arrival time
-    int burst_time;     // Burst time
-    int waiting_time;   // Waiting time
-    int turnaround_time;// Turnaround time
+    int pid;          // Process ID
+    int arrivalTime;  // Arrival time
+    int burstTime;    // Burst time
+    int completionTime; // Completion time
+    int turnaroundTime; // Turnaround time
+    int waitingTime;    // Waiting time
 };
 
-void calculate_times(struct Process processes[], int n) {
-    int current_time = 0;
-    
-    // Sorting processes by arrival time (FCFS)
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j < n - i - 1; j++) {
-            if (processes[j].arrival_time > processes[j + 1].arrival_time) {
-                struct Process temp = processes[j];
-                processes[j] = processes[j + 1];
-                processes[j + 1] = temp;
-            }
-        }
-    }
+void calculateTimes(struct Process processes[], int n, float *avgTurnaroundTime, float *avgWaitingTime) {
+    int currentTime = 0;
+    int totalTurnaroundTime = 0;
+    int totalWaitingTime = 0;
 
-    // Calculate waiting time and turnaround time
     for (int i = 0; i < n; i++) {
-        // If the process arrives after the current time, the CPU waits until the process arrives
-        if (current_time < processes[i].arrival_time) {
-            current_time = processes[i].arrival_time;
+        // If the CPU is idle, advance to the arrival time of the next process
+        if (currentTime < processes[i].arrivalTime) {
+            currentTime = processes[i].arrivalTime;
         }
 
-        // Waiting time = Current time - Arrival time
-        processes[i].waiting_time = current_time - processes[i].arrival_time;
+        // Calculate completion time
+        processes[i].completionTime = currentTime + processes[i].burstTime;
 
-        // Turnaround time = Waiting time + Burst time
-        processes[i].turnaround_time = processes[i].waiting_time + processes[i].burst_time;
+        // Calculate turnaround time
+        processes[i].turnaroundTime = processes[i].completionTime - processes[i].arrivalTime;
 
-        // Update current time for the next process
-        current_time += processes[i].burst_time;
+        // Calculate waiting time
+        processes[i].waitingTime = processes[i].turnaroundTime - processes[i].burstTime;
+
+        // Update totals
+        totalTurnaroundTime += processes[i].turnaroundTime;
+        totalWaitingTime += processes[i].waitingTime;
+
+        // Update current time
+        currentTime = processes[i].completionTime;
     }
+
+    // Calculate averages
+    *avgTurnaroundTime = (float)totalTurnaroundTime / n;
+    *avgWaitingTime = (float)totalWaitingTime / n;
 }
 
-void print_processes(struct Process processes[], int n) {
-    printf("PID\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\n");
+void printTable(struct Process processes[], int n, float avgTurnaroundTime, float avgWaitingTime) {
+    printf("\nFCFS Scheduling\n");
+    printf("PID\tArrival\tBurst\tCompletion\tTurnaround\tWaiting\n");
+
     for (int i = 0; i < n; i++) {
-        printf("%d\t%d\t\t%d\t\t%d\t\t%d\n", 
-                processes[i].pid, 
-                processes[i].arrival_time, 
-                processes[i].burst_time, 
-                processes[i].waiting_time, 
-                processes[i].turnaround_time);
+        printf("%d\t%d\t%d\t%d\t\t%d\t\t%d\n", 
+               processes[i].pid, 
+               processes[i].arrivalTime, 
+               processes[i].burstTime, 
+               processes[i].completionTime, 
+               processes[i].turnaroundTime, 
+               processes[i].waitingTime);
     }
+
+    printf("\nAverage Turnaround Time: %.2f\n", avgTurnaroundTime);
+    printf("Average Waiting Time: %.2f\n", avgWaitingTime);
 }
 
 int main() {
@@ -60,14 +69,31 @@ int main() {
 
     struct Process processes[n];
 
+    // Input process details
     for (int i = 0; i < n; i++) {
+        printf("Enter arrival time and burst time for process %d: ", i + 1);
         processes[i].pid = i + 1;
-        printf("Enter arrival time and burst time for process %d: ", processes[i].pid);
-        scanf("%d %d", &processes[i].arrival_time, &processes[i].burst_time);
+        scanf("%d %d", &processes[i].arrivalTime, &processes[i].burstTime);
     }
 
-    calculate_times(processes, n);
-    print_processes(processes, n);
+    // Sort processes by arrival time
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (processes[j].arrivalTime > processes[j + 1].arrivalTime) {
+                struct Process temp = processes[j];
+                processes[j] = processes[j + 1];
+                processes[j + 1] = temp;
+            }
+        }
+    }
+
+    float avgTurnaroundTime, avgWaitingTime;
+
+    // Calculate completion, turnaround, and waiting times
+    calculateTimes(processes, n, &avgTurnaroundTime, &avgWaitingTime);
+
+    // Print the result
+    printTable(processes, n, avgTurnaroundTime, avgWaitingTime);
 
     return 0;
 }
